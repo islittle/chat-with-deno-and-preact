@@ -8,9 +8,21 @@ import { camelize } from "./camelize.ts";
 const users = new Map<string, WebSocket>();
 
 function broadcast(message: string, senderId?: string): void {
-  if (!message) return;
+  // if (!message) return;
+  // check message type and value
+  // When refreshing the page service, message is [object object] (error object)
+  if (!message || Object.prototype.toString.call(message) !== '[object String]') return;
   for (const user of users.values()) {
-    user.send(senderId ? `[${senderId}]: ${message}` : message);
+    // Check if it can be sent
+    const isPing = (() => {
+      try {
+        user && user.send(' ')
+        return true
+      } catch (error) {
+        return false
+      }
+    })()
+    isPing && user.send(senderId ? `[${senderId}]: ${message}` : message);
   }
 }
 
